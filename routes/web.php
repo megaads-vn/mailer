@@ -16,7 +16,8 @@ $app->get('/', function () use ($app) {
 });
 
 $app->group(['prefix' => 'api', 'middleware' => 'jwt.auth'], function () use ($app) {
-    $app->post('/send-mail', 'EmailService@sendEmail');
+    $app->post('/send-mail', 'EmailService@exceptionEmail');
+    $app->post('/notify-error', 'EmailService@notifyEmail');
 });
 
 $app->post('/auth/login', 'Auth\AuthController@authenticate');

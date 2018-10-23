@@ -14,7 +14,7 @@ class EmailService extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function sendEmail(Request $request)
+    public function exceptionEmail(Request $request)
     {
         $response['status'] = 'failed';
         $input = (object) $request->all();
@@ -46,6 +46,41 @@ class EmailService extends Controller
             }
         }
         return $response;
+    }
+
+    public function notifyEmail(Request $request) 
+    {
+        $response['status'] = 'failed';
+        $input = $request->all();
+        if ( array_key_exists('group', $input) || array_key_exists('content', $input) ) {
+            $groupMail = config('groups.' . $input['group']);
+            if ( !empty($groupMail) ) {
+                $data = [
+                    'subject' => $input['subject'],
+                    'name' => (array_key_exists('name', $input)) ? $input['name'] : 'Trap Mail',
+                    'html' => $input['content'],
+                    'to' => $groupMail
+                ];
+                try {
+                    Mail::send([], [], function ($m) use ($data) {
+                        $m->from(env('MAIL_USERNAME'), $data['name']);
+                        $m->to($data['to']);
+                        $m->subject($data['subject']);
+                        $m->setBody($data['html'], 'text/html');
+                    });
+                    $response['status'] = 'successful';
+                    $response['message'] = 'Email sent';
+                } catch (\Exception $ex) {
+                    $response['message'] = $ex->getMessage();
+                    return response()->json($response);
+                }
+            } else {
+                $response['message'] = 'Group mail not config.Please contact admin for more information.';
+            }
+        } else {
+            $response['message'] = 'Group and mail content is required. Please check again.';
+        }
+        return response()->json($response);
     }
 
     /**
