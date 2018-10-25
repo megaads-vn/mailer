@@ -52,8 +52,13 @@ class EmailService extends Controller
     {
         $response['status'] = 'failed';
         $input = $request->all();
-        if ( array_key_exists('group', $input) || array_key_exists('content', $input) ) {
-            $groupMail = config('groups.' . $input['group']);
+        if ( array_key_exists('content', $input) ) {
+            if (array_key_exists('group', $input)) {
+                $groupMail = config('groups.' . $input['group']);
+            } else {
+                $groupMail = explode(',', $input['to']);
+            }
+            
             if ( !empty($groupMail) ) {
                 $data = [
                     'subject' => $input['subject'],
