@@ -1,6 +1,12 @@
 <?php
 
 return [
+    /*------------------------------------------------
+    |           SMTP CONFIGURATION
+    |-------------------------------------------------
+    |
+    |
+    */
     'driver' => env('MAIL_DRIVER'),
     'host' => env('MAIL_HOST'),
     'port' => env('MAIL_PORT'),

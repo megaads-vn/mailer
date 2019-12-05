@@ -11,6 +11,7 @@ class EmailService extends Controller
     protected $previousJob = '5 minutes';
 
     /**
+     * Send error notification to a specified group
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -48,6 +49,12 @@ class EmailService extends Controller
         return $response;
     }
 
+    /**
+     * Email to a group or a list of recipients
+     *
+     * @param Request $request
+     * @return void
+     */
     public function notifyEmail(Request $request) 
     {
         $response['status'] = 'failed';
@@ -61,9 +68,55 @@ class EmailService extends Controller
             
             if ( !empty($groupMail) ) {
                 $data = [
+                    'subject' => (array_key_exists('subject', $input)) ? $input['subject'] : 'You have new job',
+                    'name' => (array_key_exists('name', $input)) ? $input['name'] : 'Job Mail',
+                    'html' => $input['content'],
+                    'to' => $groupMail
+                ];
+                try {
+                    Mail::send([], [], function ($m) use ($data) {
+                        $m->from(env('MAIL_USERNAME'), $data['name']);
+                        $m->to($data['to']);
+                        $m->subject($data['subject']);
+                        $m->setBody($data['html'], 'text/html');
+                    });
+                    $response['status'] = 'successful';
+                    $response['message'] = 'Email sent';
+                } catch (\Exception $ex) {
+                    $response['message'] = $ex->getMessage();
+                    return response()->json($response);
+                }
+            } else {
+                $response['message'] = 'Group mail not config.Please contact admin for more information.';
+            }
+        } else {
+            $response['message'] = 'Group and mail content is required. Please check again.';
+        }
+        return response()->json($response);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function notifyJobs(Request $request) {
+        $response['status'] = 'failed';
+        $input = $request->all();
+        if ( array_key_exists('content', $input) ) {
+            if (array_key_exists('group', $input)) {
+                $groupMail = $this->getMailGroup($input['group']);
+            } else {
+                $groupMail = explode(',', $input['to']);
+            }
+            
+            if ( !empty($groupMail) ) {
+                $buildContent = $this->buildNotifyJobContent($input['content'], 'group');
+                $data = [
                     'subject' => $input['subject'],
                     'name' => (array_key_exists('name', $input)) ? $input['name'] : 'Trap Mail',
-                    'html' => $input['content'],
+                    'html' => $buildContent,
                     'to' => $groupMail
                 ];
                 try {
@@ -205,5 +258,33 @@ class EmailService extends Controller
 
             }
         }
+    }
+
+    protected function getMailGroup($groupName) {
+        $retval = [];
+        $findGroup = $this->groupService->find(['group_name' => $groupName]);
+        if (count($findGroup) > 0) {
+            $groupId = $findGroup[0]->id;
+            $getAllEmailGroup = $this->emailUserService->find(['group_id' => $groupId]);
+            if (count($getAllEmailGroup) > 0) {
+                foreach ($getAllEmailGroup as $item) {
+                    $retval[] = $item->email;
+                }
+            }
+        }
+        return $retval;
+    }
+
+    protected function buildNotifyJobContent($requestContent, $type = 'single') {
+        $retval = $requestContent;
+        $getTemplate = $this->templateService->find([]);
+        if (count($getTemplate) > 0) {
+            $tmpContent = $getTemplate[0]->content;
+            if ($type == 'group') {
+                $tmpContent = str_replace('#name', '', $tmpContent);
+            }
+            $retval = str_replace('#content', $retval, $tmpContent);
+        }
+        return $retval;
     }
 }

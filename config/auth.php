@@ -36,6 +36,10 @@ return [
             'driver' => 'jwt',
             'provider' => 'users',
         ],
+        'custom_http_guard' => [
+            'driver' => 'token',
+            'provider' => 'custom_http_provider',
+        ],
     ],
     /*
     |--------------------------------------------------------------------------
@@ -57,6 +61,12 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+        'custom_http_provider' => [
+            'data' => [
+                'email' => 'info@megaads.vn',
+                'password' => 'megaads@123',
+             ]
         ],
     ],
     /*
