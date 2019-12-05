@@ -65,10 +65,11 @@
 			e.preventDefault();
 			var name = $('#email_name').val();
 			var email = $('#email_address').val();
+			var group = $('#mail_group option:selected').val();
 			$.ajax({
 				url: $(this).attr('action'), 
 				method: $(this).attr('method'),
-				data: {name: name, email: email},
+				data: {name: name, email: email, group_id: group},
 				success: function(response) {
 					if (response.status == 'successful') {
 						$('#template_name').val('');

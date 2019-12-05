@@ -15,6 +15,16 @@
                     <div class="form-group">
                         <input id="email_address" type="text" name="address" class="form-control" placeholder="Email address" />    
                     </div>
+                    <div class="form-group">
+                        <select id="mail_group" name="group" class="form-control">
+                            <option value="">-- Select group --</option>
+                            @if (isset($groups) && count($groups) > 0)
+                                @foreach ($groups as $item) 
+                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer justify-content-between">
