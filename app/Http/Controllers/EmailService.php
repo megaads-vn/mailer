@@ -106,39 +106,44 @@ class EmailService extends Controller
         $input = $request->all();
         if ( array_key_exists('content', $input) ) {
             if (array_key_exists('group', $input)) {
-                $groupMail = $this->getMailGroup($input['group']);
-            } else {
-                $groupMail = explode(',', $input['to']);
-            }
-            
-            if ( !empty($groupMail) ) {
-                $buildContent = $this->buildNotifyJobContent($input['content'], 'group');
-                $data = [
-                    'subject' => $input['subject'],
-                    'name' => (array_key_exists('name', $input)) ? $input['name'] : 'Trap Mail',
-                    'html' => $buildContent,
-                    'to' => $groupMail
-                ];
-                try {
-                    Mail::send([], [], function ($m) use ($data) {
-                        $m->from(env('MAIL_USERNAME'), $data['name']);
-                        $m->to($data['to']);
-                        $m->subject($data['subject']);
-                        $m->setBody($data['html'], 'text/html');
-                    });
-                    $response['status'] = 'successful';
-                    $response['message'] = 'Email sent';
-                } catch (\Exception $ex) {
-                    $response['message'] = $ex->getMessage();
-                    return response()->json($response);
+                $extractGroup = explode(',', $input['group']);
+                foreach ($extractGroup as $item) {
+                    $this->sendGroupEmail($item, $input);
                 }
-            } else {
-                $response['message'] = 'Group mail not config.Please contact admin for more information.';
             }
         } else {
             $response['message'] = 'Group and mail content is required. Please check again.';
         }
         return response()->json($response);
+    }
+
+    protected function sendGroupEmail($groupName, $input) {
+        $groupMail = $this->getMailGroup($groupName);
+        if (empty($groupMail)) {
+            $groupMail = explode(',', $input['to']);
+        }
+        if ( !empty($groupMail) ) {
+            $buildContent = $this->buildNotifyJobContent($input['content'], 'group');
+            $data = [
+                'subject' => $input['subject'],
+                'name' => (array_key_exists('name', $input)) ? $input['name'] : 'Trap Mail',
+                'html' => $buildContent,
+                'to' => $groupMail
+            ];
+            try {
+                Mail::send([], [], function ($m) use ($data) {
+                    $m->from(env('MAIL_USERNAME'), $data['name']);
+                    $m->to($data['to']);
+                    $m->subject($data['subject']);
+                    $m->setBody($data['html'], 'text/html');
+                });
+                $response['status'] = 'successful';
+                $response['message'] = 'Email sent';
+            } catch (\Exception $ex) {
+                $response['message'] = $ex->getMessage();
+                return response()->json($response);
+            }
+        }
     }
 
     /**

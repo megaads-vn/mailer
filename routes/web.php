@@ -18,8 +18,8 @@ $app->get('/', function () use ($app) {
 $app->group(['prefix' => 'api', 'middleware' => 'jwt.auth'], function () use ($app) {
     $app->post('/notify-error', 'EmailService@exceptionEmail');
     $app->post('/send-mail', 'EmailService@notifyEmail');
-    $app->post('/notify-jobs', 'EmailService@notifyJobs');
 });
+$app->post('/api/notify-jobs', 'EmailService@notifyJobs');
 
 $app->group(['prefix' => 'admin', 'namespace' => 'Admin', 'middleware' => 'basic.auth'], function() use ($app) {
     $app->get('/', ['as' => 'admin::home', 'uses' => 'HomeController@index']);
