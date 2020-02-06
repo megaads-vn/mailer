@@ -59,40 +59,54 @@ class EmailService extends Controller
     {
         $response['status'] = 'failed';
         $input = $request->all();
+        $recipients = [];
+        $groupRecipients = [];
         if ( array_key_exists('content', $input) ) {
-            if (array_key_exists('group', $input)) {
-                $groupMail = config('groups.' . $input['group']);
-            } else {
-                $groupMail = explode(',', $input['to']);
-            }
-            
-            if ( !empty($groupMail) ) {
-                $data = [
-                    'subject' => (array_key_exists('subject', $input)) ? $input['subject'] : 'You have new job',
-                    'name' => (array_key_exists('name', $input)) ? $input['name'] : 'Job Mail',
-                    'html' => $input['content'],
-                    'to' => $groupMail
-                ];
-                try {
-                    Mail::send([], [], function ($m) use ($data) {
-                        $m->from(env('MAIL_USERNAME'), $data['name']);
-                        $m->to($data['to']);
-                        $m->subject($data['subject']);
-                        $m->setBody($data['html'], 'text/html');
-                    });
-                    $response['status'] = 'successful';
-                    $response['message'] = 'Email sent';
-                } catch (\Exception $ex) {
-                    $response['message'] = $ex->getMessage();
-                    return response()->json($response);
+            if (array_key_exists('group', $input) || array_key_exists('to', $input) ) {
+                if (array_key_exists('group', $input)) {
+                    $groupRecipients = explode(',', $input['group']);
+                    foreach ($groupRecipients as $groupRecipient) {
+                        $result = $this->getMailGroup($groupRecipient);
+                        $recipients = array_merge($recipients, $result);
+                    }
+                } 
+                if (array_key_exists('to', $input))  {
+                    $extractToAttribute = explode(',', $input['to']);
+                    $recipients = array_merge($recipients, $extractToAttribute);
                 }
+                if (!empty($recipients)) {
+                    $this->processNotifyEmail($recipients, $input);
+                }
+                $response['status'] = 'successful';
             } else {
-                $response['message'] = 'Group mail not config.Please contact admin for more information.';
-            }
+                $response['message'] = 'Please , provide at least one recipients';
+            }  
         } else {
             $response['message'] = 'Group and mail content is required. Please check again.';
         }
         return response()->json($response);
+    }
+
+    protected function processNotifyEmail($recipients, $input) {
+        $data = [
+            'subject' => (array_key_exists('subject', $input)) ? $input['subject'] : 'You have new job',
+            'name' => (array_key_exists('name', $input)) ? $input['name'] : 'Job Mail',
+            'html' => $input['content'],
+            'to' => $recipients
+        ];
+        try {
+            Mail::send([], [], function ($m) use ($data) {
+                $m->from(env('MAIL_USERNAME'), $data['name']);
+                $m->to($data['to']);
+                $m->subject($data['subject']);
+                $m->setBody($data['html'], 'text/html');
+            });
+            $response['status'] = 'successful';
+            $response['message'] = 'Email sent';
+        } catch (\Exception $ex) {
+            $response['message'] = $ex->getMessage();
+            return response()->json($response);
+        }
     }
 
     /**
