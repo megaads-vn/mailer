@@ -90,4 +90,6 @@ return [
             'expire' => 60,
         ],
     ],
+
+    'accessible' => ['bachnx2303@gmail.com', 'phult.contact@gmail.com']
 ];

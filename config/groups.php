@@ -1,6 +1,6 @@
 <?php
 
 return [
-    'technical' => ['phult.contact@gmail.com'],
+    'technical' => [],
     'coupon' => []
 ];

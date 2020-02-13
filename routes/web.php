@@ -14,14 +14,13 @@
 $app->get('/', function () use ($app) {
     return 'MegaAds mailer 5.4.7';
 });
-
 $app->group(['prefix' => 'api', 'middleware' => 'jwt.auth'], function () use ($app) {
     $app->post('/notify-error', 'EmailService@exceptionEmail');
     $app->post('/send-mail', 'EmailService@notifyEmail');
 });
 $app->post('/api/notify-jobs', 'EmailService@notifyJobs');
 
-$app->group(['prefix' => 'admin', 'namespace' => 'Admin', 'middleware' => 'basic.auth'], function() use ($app) {
+$app->group(['prefix' => 'admin', 'namespace' => 'Admin', 'middleware' => 'sso.auth'], function() use ($app) {
     $app->get('/', ['as' => 'admin::home', 'uses' => 'HomeController@index']);
 
     $app->get('/groups', ['as' => 'admin::groups', 'uses' => 'HomeController@listGroups']);
@@ -38,4 +37,5 @@ $app->group(['prefix' => 'admin', 'namespace' => 'Admin', 'middleware' => 'basic
 });
 
 $app->post('/auth/login', 'Auth\AuthController@authenticate');
+$app->get('/sso/callback', 'Auth\AuthController@ssoCallback');
 

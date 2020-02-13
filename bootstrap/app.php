@@ -63,10 +63,15 @@ $app->singleton(
 //    App\Http\Middleware\ExampleMiddleware::class
 // ]);
 
+$app->middleware([
+    'Illuminate\Session\Middleware\StartSession'
+]);
+
  $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'basic.auth' => App\Http\Middleware\HttpBasicAuth::class,
     'jwt.auth' => \App\Http\Middleware\JwtMiddleware::class,
+    'sso.auth' => \App\Http\Middleware\SsoAuthenticate::class,
  ]);
 
 /*
@@ -81,12 +86,13 @@ $app->singleton(
 */
 
 // $app->register(App\Providers\AppServiceProvider::class);
- $app->register(App\Providers\AuthServiceProvider::class);
+$app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 $app->register(\Illuminate\Mail\MailServiceProvider::class);
 //$app->register(\Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class);
 $app->register(\Thedevsaddam\LumenRouteList\LumenRouteListServiceProvider::class);
 
+$app->register(Illuminate\Session\SessionServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
@@ -97,13 +103,17 @@ $app->register(\Thedevsaddam\LumenRouteList\LumenRouteListServiceProvider::class
 | can respond to, as well as the controllers that may handle them.
 |
 */
+$app->configure('mail');
+$app->configure('groups');
+$app->configure('status_code');
+$app->configure('session');
 
 $app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
     require __DIR__.'/../routes/web.php';
 });
 
-$app->configure('mail');
-$app->configure('groups');
-$app->configure('status_code');
+$app->bind(Illuminate\Session\SessionManager::class, function ($app) {    
+    return $app->make('session');
+});
 
 return $app;
