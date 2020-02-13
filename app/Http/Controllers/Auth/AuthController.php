@@ -67,8 +67,11 @@ class AuthController extends Controller
         $redirect = '/';
         $token = $request->get('token');
         $authUrl = 'https://id.megaads.vn/sso/auth?token=' . $token;
-        $getUserResult = $this->sendRequest($authUrl);
+        $getUserResult = NULL;
+        // $getUserResult = $this->sendRequest($authUrl);
+        exec("curl $authUrl", $getUserResult);
         if ($getUserResult) {
+            $getUserResult = $getUserResult[0];
             $data = json_decode($getUserResult);
             if ($data->status == 'success') { 
                 $configAccessible = config('auth.accessible');
