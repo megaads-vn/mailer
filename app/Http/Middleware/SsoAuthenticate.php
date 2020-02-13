@@ -16,7 +16,7 @@ class SsoAuthenticate
         $user = $request->session()->get('user');
         if (!$user) {
             $request->session()->put('redirect_url', $request->fullUrl());
-            $ssoUrl = 'https://id.megaads.vn/system/home/login?continue=http://mailer.megaads.net/sso/callback';
+            $ssoUrl = 'https://id.megaads.vn/system/home/login?continue=http://103.253.145.49/sso/callback';
             return redirect()->to($ssoUrl);
         }
         // if ($request->getUser() != env('API_USERNAME') || $request->getPassword() != env('API_PASSWORD')) {
