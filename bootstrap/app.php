@@ -72,6 +72,7 @@ $app->middleware([
     'basic.auth' => App\Http\Middleware\HttpBasicAuth::class,
     'jwt.auth' => \App\Http\Middleware\JwtMiddleware::class,
     'sso.auth' => \App\Http\Middleware\SsoAuthenticate::class,
+    'request' => \App\Http\Middleware\RequestFilter::class,
  ]);
 
 /*

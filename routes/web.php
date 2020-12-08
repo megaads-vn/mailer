@@ -14,7 +14,7 @@
 $app->get('/', function () use ($app) {
     return 'MegaAds mailer 5.4.7';
 });
-$app->group(['prefix' => 'api', 'middleware' => 'jwt.auth'], function () use ($app) {
+$app->group(['prefix' => 'api', 'middleware' => ['jwt.auth', 'request']], function () use ($app) {
     $app->post('/notify-error', 'EmailService@exceptionEmail');
     $app->post('/send-mail', 'EmailService@notifyEmail');
 });
