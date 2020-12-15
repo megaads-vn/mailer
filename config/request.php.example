@@ -1,0 +1,7 @@
+<?php 
+// source name => request per day
+// default => 10
+return [
+    'chiaki' => 50,
+    'default' => 10
+];

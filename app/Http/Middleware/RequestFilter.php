@@ -17,32 +17,23 @@ class RequestFilter
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        $clientIp = $request->ip();
+        $clientSource = $request->get('source', '');
         $message = "";
-        $cacheKey =  'request::' . $clientIp;
-        $headerBlocked = $this->blockByHeader($request);
+        $cacheKey =  'request::' . $clientSource . '::increment';
+        $requestPerDay = $this->getRequestPerDayBySource($clientSource);
         $isBlockRequest = false;
+        $count = 1;
         if (Cache::has($cacheKey)) {
-            $isBlockRequest = true;
-            $message = "Too many request in a minute";
-        } else if ($headerBlocked && Cache::has($cacheKey)) {
-            $cacheKey .= '::increment';
-            $count = 1;
-            if (Cache::has($cacheKey)) {
-                $count = Cache::get($cacheKey);
-                if ($count > 10) {
-                    $isBlockRequest = true;
-                    $message = "Daily quotar exceeded.";
-                } else {
-                    Cache::increment($cacheKey, 1);
-                }
+            $count += Cache::get($cacheKey);
+            if ($count > $requestPerDay) {
+                $isBlockRequest = true;
+                $message = "Daily quota exceeded.";
             } else {
-                $expiredAt = Carbon::now()->addHours(24);
-                Cache::put($cacheKey, $count, $expiredAt);
+                Cache::increment($cacheKey, 1);
             }
         } else {
-            $requestExpired = Carbon::now()->addMinutes(1);
-            Cache::put($cacheKey, true, $requestExpired);
+            $expiredAt = Carbon::now()->addHours(24);
+            Cache::put($cacheKey, $count, $expiredAt);
         }
         if ($isBlockRequest) {
             return response()->json(['status' => 'fail', 'message' => $message], 403);
@@ -50,12 +41,12 @@ class RequestFilter
         return $next($request);
     }
 
-    private function blockByHeader($request) {
-        $retval = false;
-        $header = $request->header('user-agent');
-        preg_match('/(Chiaki\/1\s+CFNetwork|okhttp)/i', $header, $matches);
-        if (count($matches) > 0) {
-            $retval = true;            
+    private function getRequestPerDayBySource($source) {
+        $retval = 0;
+        $configSources = config('request');
+        $retval = $configSources['default'];
+        if ($source != '' && array_key_exists($source, $configSources)) {
+            $retval = $configSources[$source];            
         }
         return $retval;
     }

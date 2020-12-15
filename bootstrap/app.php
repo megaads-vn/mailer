@@ -108,6 +108,7 @@ $app->configure('mail');
 $app->configure('groups');
 $app->configure('status_code');
 $app->configure('session');
+$app->configure('request');
 
 $app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
     require __DIR__.'/../routes/web.php';
