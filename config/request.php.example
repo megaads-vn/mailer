@@ -2,6 +2,11 @@
 // source name => request per day
 // default => 10
 return [
-    'chiaki' => 50,
-    'default' => 10
+    'source_quota' => [
+        'chiaki' => 50,
+        'default' => 10
+    ],
+    'notify_to' => 'bachnx2303@gmail.com',
+    'notify_group' => 'technical',
+    'smtp_quota' => 400,
 ];
