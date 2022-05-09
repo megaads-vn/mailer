@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\JobMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class EmailService extends Controller
@@ -75,9 +76,8 @@ class EmailService extends Controller
                     $recipients = array_merge($recipients, $extractToAttribute);
                 }
                 if (!empty($recipients)) {
-                    $this->processNotifyEmail($recipients, $input);
+                    $response = $this->processNotifyEmail($recipients, $input);
                 }
-                $response['status'] = 'successful';
             } else {
                 $response['message'] = 'Please , provide at least one recipients';
             }  
@@ -92,21 +92,28 @@ class EmailService extends Controller
             'subject' => (array_key_exists('subject', $input)) ? $input['subject'] : 'You have new job',
             'name' => (array_key_exists('name', $input)) ? $input['name'] : 'Job Mail',
             'html' => $input['content'],
-            'to' => $recipients
+            'to' => $recipients,
         ];
+        if (array_key_exists('cc', $input)) {
+            $data['cc'] = $input['cc'];
+        }
         try {
             Mail::send([], [], function ($m) use ($data) {
                 $m->from(env('MAIL_USERNAME'), $data['name']);
                 $m->to($data['to']);
+                if (isset($data['cc'])) {
+                    $m->cc($data['cc']);
+                }
                 $m->subject($data['subject']);
                 $m->setBody($data['html'], 'text/html');
             });
             $response['status'] = 'successful';
             $response['message'] = 'Email sent';
         } catch (\Exception $ex) {
+            $response['status'] = 'failed';
             $response['message'] = $ex->getMessage();
-            return response()->json($response);
         }
+        return $response;
     }
 
     /**
