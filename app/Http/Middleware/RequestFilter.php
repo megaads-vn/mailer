@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class RequestFilter 
 {
@@ -31,6 +32,7 @@ class RequestFilter
             if ($count > $requestPerDay) {
                 $isBlockRequest = true;
                 $message = "Daily quota exceeded.";
+                Log::error('SEND_EMAIL_QUOTA_EXCEEDED: ' . json_encode($request->all()));
             } else {
                 Cache::increment($cacheKey, 1);
             }

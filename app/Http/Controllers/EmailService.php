@@ -97,6 +97,7 @@ class EmailService extends Controller
         if (array_key_exists('cc', $input)) {
             $data['cc'] = $input['cc'];
         }
+        Log::info('SEND_EMAIL_DATA: ' . json_encode($data));
         try {
             Mail::send([], [], function ($m) use ($data) {
                 $m->from(env('MAIL_USERNAME'), $data['name']);
@@ -112,6 +113,7 @@ class EmailService extends Controller
         } catch (\Exception $ex) {
             $response['status'] = 'failed';
             $response['message'] = $ex->getMessage();
+            Log::error('SEND_EMAIL_ERROR: ' . $ex->getMessage());
         }
         return $response;
     }
