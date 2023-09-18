@@ -64,8 +64,8 @@ return [
         ],
         'custom_http_provider' => [
             'data' => [
-                'email' => 'info@megaads.vn',
-                'password' => 'megaads@123',
+                'email' => 'info.megaads@gmail.com',
+                'password' => 'Meg@@ds@1234',
              ]
         ],
     ],

@@ -33,7 +33,7 @@ class EmailService extends Controller
                 foreach( $toGroups as $group ) {
                     $data['to'] = $group;
                     Mail::send([], [], function ($m) use ($data) {
-                                $m->from(env('MAIL_USERNAME'), $data['name']);
+                                $m->from(env('MAIL_FROM'), $data['name']);
                                 $m->to($data['to']);
                                 $m->subject($data['subject']);
                                 $m->setBody($data['html'], 'text/html');
@@ -93,6 +93,7 @@ class EmailService extends Controller
             'name' => (array_key_exists('name', $input)) ? $input['name'] : 'Job Mail',
             'html' => $input['content'],
             'to' => $recipients,
+            'replyTo' => (array_key_exists('replyTo', $input)) ? $input['replyTo'] : '',
         ];
         if (array_key_exists('cc', $input)) {
             $data['cc'] = $input['cc'];
@@ -100,10 +101,13 @@ class EmailService extends Controller
         Log::info('SEND_EMAIL_DATA: ' . json_encode($data));
         try {
             Mail::send([], [], function ($m) use ($data) {
-                $m->from(env('MAIL_USERNAME'), $data['name']);
+                $m->from(env('MAIL_FROM'), $data['name']);
                 $m->to($data['to']);
                 if (isset($data['cc'])) {
                     $m->cc($data['cc']);
+                }
+                if (isset($data['replyTo']) && $data['replyTo'] !== "") {
+                    $m->replyTo( $data['replyTo']);
                 }
                 $m->subject($data['subject']);
                 $m->setBody($data['html'], 'text/html');
@@ -155,7 +159,7 @@ class EmailService extends Controller
             ];
             try {
                 Mail::send([], [], function ($m) use ($data) {
-                    $m->from(env('MAIL_USERNAME'), $data['name']);
+                    $m->from(env('MAIL_FROM'), $data['name']);
                     $m->to($data['to']);
                     $m->subject($data['subject']);
                     $m->setBody($data['html'], 'text/html');
